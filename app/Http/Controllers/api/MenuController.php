@@ -19,6 +19,6 @@ class MenuController extends Controller
     {
         $params = $request->query();
         $data = $this->model->result($params);
-        return json_encode(['success'=>0,'message'=>'','data'=>$data],JSON_UNESCAPED_UNICODE);
+        return json_encode(['code'=>0,'message'=>'','data'=>$data],JSON_UNESCAPED_UNICODE);
     }
 }
