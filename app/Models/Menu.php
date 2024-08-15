@@ -18,6 +18,12 @@ class Menu extends Model
         $query = $this->filterQueryConditions($query, $params);
         $query = $query->orderBy('sort', 'asc');
         $data = $query->get()->toArray();
+        if (!empty($params)) {
+            $parentIds = array_column($data, 'parent_id');
+            $parentIds = array_unique(array_filter($parentIds));
+            $parentMenus = Menu::query()->whereIn('id', $parentIds)->get()->toArray();
+            $data = array_merge($data, $parentMenus);
+        }
         return Helpers::buildTree($data);
     }
 
