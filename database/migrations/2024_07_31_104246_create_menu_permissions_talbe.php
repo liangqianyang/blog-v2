@@ -11,14 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('role_permissiones', function (Blueprint $table) {
+        Schema::create('menu_permissions', function (Blueprint $table) {
             $table->bigInteger('id')->unsigned()->nullable(false)->autoIncrement()->comment('主键ID');
-            $table->bigInteger('role_id')->unsigned()->nullable(false)->default(0)->comment('角色ID');
+            $table->bigInteger('menu_id')->unsigned()->nullable(false)->default(0)->comment('菜单ID');
             $table->bigInteger('permission_id')->unsigned()->nullable(false)->default(0)->comment('权限ID');
             $table->primary('id');
-            $table->index('role_id');
+            $table->index('menu_id');
             $table->index('permission_id');
-            $table->comment('角色权限关联表');
+            $table->comment('菜单权限关联表');
         });
     }
 
@@ -27,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('role_permissiones');
+        Schema::dropIfExists('menu_permissiones');
     }
 };
