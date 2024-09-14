@@ -22,7 +22,7 @@ class UserLoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'user_name' => 'required|max:64',
+            'username' => 'required|max:64',
             'password' => 'required|max:255',
         ];
     }
