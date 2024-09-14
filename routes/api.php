@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\api\MenuController;
 use App\Http\Controllers\api\PermissionController;
+use App\Http\Controllers\api\RoleController;
 use App\Http\Controllers\api\UserController;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -18,4 +19,6 @@ Route::middleware('auth:sanctum')->prefix('v1')->group(function () {
     Route::post('/user/login-out', [UserController::class, 'loginOut']);
     Route::get('/menu/list', [MenuController::class, 'list']);
     Route::post('/permission/store', [PermissionController::class, 'create']);
+    Route::post('/role/store', [RoleController::class, 'create']);
+    Route::post('/role/assign-permissions', [RoleController::class, 'assignPermissions']);
 });
