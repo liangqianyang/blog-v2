@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->bigInteger('id')->unsigned()->nullable(false)->autoIncrement()->comment('主键ID');
-            $table->string('user_name',64)->nullable(false)->default('')->comment('用户名');
-            $table->string('nick_name',64)->nullable(false)->default('')->comment('昵称');
+            $table->string('username',64)->nullable(false)->default('')->comment('用户名');
+            $table->string('nickname',64)->nullable(false)->default('')->comment('昵称');
             $table->string('password',255)->nullable(false)->default('')->comment('密码');
             $table->string('email',64)->nullable(false)->default('')->comment('邮箱');
             $table->string('phone',64)->nullable(false)->default('')->comment('手机号');
