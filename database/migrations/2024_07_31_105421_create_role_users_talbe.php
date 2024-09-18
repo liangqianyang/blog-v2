@@ -15,7 +15,6 @@ return new class extends Migration
             $table->bigInteger('id')->unsigned()->nullable(false)->autoIncrement()->comment('主键ID');
             $table->bigInteger('role_id')->nullable(false)->unsigned()->default(0)->comment('角色ID');
             $table->bigInteger('user_id')->nullable(false)->unsigned()->default(0)->comment('用户ID');
-            $table->tinyInteger('state')->nullable(false)->default(1)->comment('状态 -1:删除 1:正常');
             $table->primary('id');
             $table->index('role_id');
             $table->index('user_id');

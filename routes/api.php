@@ -18,7 +18,9 @@ Route::prefix('v1')->group(function () {
 Route::middleware('auth:sanctum')->prefix('v1')->group(function () {
     Route::post('/user/login-out', [UserController::class, 'loginOut']);
     Route::get('/menu/list', [MenuController::class, 'list']);
+    Route::get('/menu/navbar', [MenuController::class, 'navbarMenu']);
     Route::post('/permission/store', [PermissionController::class, 'create']);
     Route::post('/role/store', [RoleController::class, 'create']);
     Route::post('/role/assign-permissions', [RoleController::class, 'assignPermissions']);
+    Route::post('/user/assign-roles', [UserController::class, 'assignRoles']);
 });
