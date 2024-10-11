@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Component\Helpers;
+use App\Http\Requests\CreateMenuRequest;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
@@ -30,6 +31,27 @@ class Menu extends Model
         $menuIds = array_unique(array_merge($menuIds, $parentIds));
         $data = Menu::query()->whereIn('id', $menuIds)->get()->toArray();
         return Helpers::buildTree($data);
+    }
+
+    /**
+     * 获取菜单选择列表
+     * @return array
+     */
+    public function getMenuSelectList(): array
+    {
+        $data = [];
+        try {
+            $list = Menu::query()->select(['id as value', 'parent_id', 'name as label'])
+                ->where(['state' => 1])->orderBy('sort', 'asc')->get()->toArray();
+            $menuIds = array_column($list, 'value');
+            $parentIds = array_column($list, 'parent_id');
+            $parentIds = array_unique(array_filter($parentIds));
+            $menuIds = array_unique(array_merge($menuIds, $parentIds));
+            $data = Menu::query()->select(['id as value', 'parent_id', 'name as label'])->whereIn('id', $menuIds)->get()->toArray();
+        } catch (\Exception $e) {
+            Log::error('获取菜单选择列表失败,error:' . $e->getMessage());
+        }
+        return Helpers::buildTree($data, 0, 'value');
     }
 
     /**
@@ -112,6 +134,33 @@ class Menu extends Model
             }
         }
         return $query;
+    }
+
+    public function store(CreateMenuRequest $request)
+    {
+        $result = true;
+        $message = '保存成功';
+        try {
+            $params = $request->validated();
+            $menu = Menu::query()->where('name', $params['name'])->first();
+            if (!empty($menu)) {
+                throw new \ErrorException('菜单已存在');
+            }
+            $menu = new Menu();
+            $menu->parent_id = $params['parent_id'];
+            $menu->name = $params['name'];
+            $menu->component = $params['component'];
+            $menu->path = $params['path'];
+            $menu->icon = $params['icon'];
+            $menu->sort = $params['sort'];
+            $menu->state = 1;
+            $menu->save();
+        } catch (\Exception $e) {
+            $result = false;
+            $message = '保存失败，' . $e->getMessage();
+            Log::error('菜单保存失败,error:' . $e->getMessage());
+        }
+        return [$result, $message];
     }
 }
 

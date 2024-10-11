@@ -34,7 +34,7 @@ class RoleController extends Controller
      * @param CreateRoleRequest $request
      * @return string
      */
-    public function create(CreateRoleRequest $request): string
+    public function store(CreateRoleRequest $request): string
     {
         $result = ['code' => 0, 'message' => '保存成功'];
         list($res, $message) = $this->model->store($request);

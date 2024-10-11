@@ -19,8 +19,10 @@ Route::middleware('auth:sanctum')->prefix('v1')->group(function () {
     Route::post('/user/login-out', [UserController::class, 'loginOut']);
     Route::get('/menu/list', [MenuController::class, 'list']);
     Route::get('/menu/navbar', [MenuController::class, 'navbarMenu']);
+    Route::get('/menu/select-list', [MenuController::class, 'menuSelectList']);
+    Route::get('/menu/store', [MenuController::class, 'store']);
     Route::post('/permission/store', [PermissionController::class, 'create']);
-    Route::post('/role/store', [RoleController::class, 'create']);
+    Route::post('/role/store', [RoleController::class, 'store']);
     Route::post('/role/assign-permissions', [RoleController::class, 'assignPermissions']);
     Route::post('/user/assign-roles', [UserController::class, 'assignRoles']);
 });
