@@ -23,13 +23,12 @@ class Menu extends Model
     {
         $query = Menu::query();
         $query = $this->filterQueryConditions($query, $params);
-        $query = $query->orderBy('sort', 'asc');
         $data = $query->get()->toArray();
         $menuIds = array_column($data, 'id');
         $parentIds = array_column($data, 'parent_id');
         $parentIds = array_unique(array_filter($parentIds));
         $menuIds = array_unique(array_merge($menuIds, $parentIds));
-        $data = Menu::query()->whereIn('id', $menuIds)->get()->toArray();
+        $data = Menu::query()->whereIn('id', $menuIds)->orderBy('sort', 'asc')->get()->toArray();
         return Helpers::buildTree($data);
     }
 
@@ -151,8 +150,8 @@ class Menu extends Model
             $menu->name = $params['name'];
             $menu->component = $params['component'];
             $menu->path = $params['path'];
-            $menu->icon = $params['icon'];
-            $menu->sort = $params['sort'];
+            $menu->icon = !empty($params['icon']) ? $params['icon'] : '';
+            $menu->sort = !empty($params['sort']) ? $params['sort'] : '';
             $menu->state = 1;
             $menu->save();
         } catch (\Exception $e) {

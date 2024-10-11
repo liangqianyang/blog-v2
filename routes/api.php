@@ -20,7 +20,7 @@ Route::middleware('auth:sanctum')->prefix('v1')->group(function () {
     Route::get('/menu/list', [MenuController::class, 'list']);
     Route::get('/menu/navbar', [MenuController::class, 'navbarMenu']);
     Route::get('/menu/select-list', [MenuController::class, 'menuSelectList']);
-    Route::get('/menu/store', [MenuController::class, 'store']);
+    Route::post('/menu/store', [MenuController::class, 'store']);
     Route::post('/permission/store', [PermissionController::class, 'create']);
     Route::post('/role/store', [RoleController::class, 'store']);
     Route::post('/role/assign-permissions', [RoleController::class, 'assignPermissions']);

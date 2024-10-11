@@ -26,7 +26,7 @@ class CreateMenuRequest extends FormRequest
             'parent_id' => 'required|integer',
             'name' => 'required|max:64',
             'component' => 'required|max:100',
-            'path' => 'required|max:100',
+            'path' => 'required|string|max:100',
             'icon' => 'max:100',
             'sort' => 'integer',
         ];
