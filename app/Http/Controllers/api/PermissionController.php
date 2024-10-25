@@ -24,8 +24,8 @@ class PermissionController extends Controller
     public function list(Request $request): string
     {
         $params = $request->query();
-        $data = $this->model->result($params);
-        return json_encode(['code' => 0, 'message' => '', 'data' => $data], JSON_UNESCAPED_UNICODE);
+        list($count, $data) = $this->model->result($params);
+        return json_encode(['code' => 0, 'message' => '', 'total' => $count, 'data' => $data], JSON_UNESCAPED_UNICODE);
     }
 
     /**

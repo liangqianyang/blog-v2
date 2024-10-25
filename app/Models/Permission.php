@@ -18,14 +18,17 @@ class Permission extends Model
     /**
      * 列表查询结果
      * @param array $params
-     * @return Collection
+     * @return array
      */
-    public function result(array $params): Collection
+    public function result(array $params): array
     {
+        $page = $params['page'] ?? 1;
+        $pageSize = $params['page_size'] ?? 10;
         $query = Permission::query();
+        $count = $query->count();
         $query = $this->filterQueryConditions($query, $params);
-        $query = $query->orderBy('sort', 'asc');
-        return $query->get();
+        $query = $query->orderBy('id', 'asc');
+        return [$count, $query->forPage($page, $pageSize)->get()];
     }
 
     /**
@@ -34,6 +37,39 @@ class Permission extends Model
      * @return array
      */
     public function store(CreatePermissionRequest $request): array
+    {
+        $result = false;
+        $message = '保存失败';
+        try {
+            $id = $request->input('id');
+            $name = $request->input('name');
+            $code = $request->input('code');
+            $description = $request->input('description');
+            $permission = Permission::query()->where('code', $code)->where('id', '<>', $id)->first();
+            if (!empty($permission)) {
+                throw new \ErrorException('权限已存在');
+            }
+            DB::transaction(function () use ($id, $name, $code, $description) {
+                if ($id) {
+                    $permission = Permission::query()->where('id', $id)->first();
+                } else {
+                    $permission = new Permission();
+                }
+                $permission->name = $name;
+                $permission->code = $code;
+                $permission->description = $description;
+                $permission->save();
+            });
+            $result = true;
+        } catch (\Exception $e) {
+            $message = $e->getMessage();
+            Log::error('权限保存失败,error:' . $e->getMessage());
+        }
+        return [$result, $message];
+    }
+
+
+    public function storeRolePermission(CreatePermissionRequest $request): array
     {
         $result = false;
         $message = '保存失败';
@@ -69,7 +105,6 @@ class Permission extends Model
         }
         return [$result, $message];
     }
-
 
     /**
      * 关联菜单

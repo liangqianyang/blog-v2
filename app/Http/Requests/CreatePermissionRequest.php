@@ -23,9 +23,9 @@ class CreatePermissionRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'menu_id' => 'required|integer',
             'name' => 'required|max:64',
             'code' => 'required|max:64',
+            'description' => 'max:128',
         ];
     }
 }
