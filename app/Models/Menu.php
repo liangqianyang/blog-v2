@@ -78,7 +78,7 @@ class Menu extends Model
             $parentIds = array_column($menus, 'parent_id');
             $parentIds = array_unique(array_filter($parentIds));
             $menuIds = array_unique(array_merge($menuIds, $parentIds));
-            $menus = Menu::query()->whereIn('id', $menuIds)->get()->toArray();
+            $menus = Menu::query()->whereIn('id', $menuIds)->orderBy('sort')->get()->toArray();
             $data = Helpers::buildTree($menus);
             foreach ($data as &$item) {
                 if ($item['parent_id'] == 0 && !empty($item['children'])) {

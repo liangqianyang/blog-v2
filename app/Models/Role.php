@@ -2,8 +2,11 @@
 
 namespace App\Models;
 
+use App\Component\Helpers;
 use App\Http\Requests\AssignPermissionsRequest;
+use App\Http\Requests\ChangeRoleStateRequest;
 use App\Http\Requests\CreateRoleRequest;
+use App\Http\Requests\UpdateRoleRequest;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -25,7 +28,7 @@ class Role extends Model
     {
         $query = Role::query();
         $query = $this->filterQueryConditions($query, $params);
-        $query = $query->orderBy('sort', 'asc');
+        $query = $query->orderBy('id', 'desc');
         return $query->get();
     }
 
@@ -36,7 +39,7 @@ class Role extends Model
      */
     public function store(CreateRoleRequest $request): array
     {
-        $result = true;
+        $success = true;
         $message = '保存成功';
         try {
             $params = $request->validated();
@@ -48,11 +51,61 @@ class Role extends Model
             $role->name = $params['name'];
             $role->save();
         } catch (\Exception $e) {
-            $result = false;
+            $success = false;
             $message = '保存失败，' . $e->getMessage();
             Log::error('角色保存失败,error:' . $e->getMessage());
         }
-        return [$result, $message];
+        return [$success, $message];
+    }
+
+    /**
+     * 更新角色
+     * @param UpdateRoleRequest $request
+     * @return array
+     */
+    public function updateRole(UpdateRoleRequest $request): array
+    {
+        $success = true;
+        $message = '更新成功';
+        try {
+            $params = $request->validated();
+            $role = Role::query()->where('name', $params['name'])->first();
+            if (!empty($role)) {
+                throw new \ErrorException('角色已存在');
+            }
+            $role = Role::query()->find($params['id']);
+            if (empty($role)) {
+                throw new \ErrorException('角色不存在');
+            }
+            $role->name = $params['name'];
+            $role->save();
+        } catch (\Exception $e) {
+            $success = false;
+            $message = '更新失败，' . $e->getMessage();
+            Log::error('角色更新失败,error:' . $e->getMessage());
+        }
+        return [$success, $message];
+    }
+
+
+    public function changeState(ChangeRoleStateRequest $request): array
+    {
+        $success = true;
+        $message = '操作成功';
+        try {
+            $params = $request->validated();
+            $role = Role::query()->find($params['id']);
+            if (empty($role)) {
+                throw new \ErrorException('角色不存在');
+            }
+            $role->state = $role->state == 1 ? -1 : 1;
+            $role->save();
+        } catch (\Exception $e) {
+            $success = false;
+            $message = '操作失败，' . $e->getMessage();
+            Log::error('角色状态修改失败,error:' . $e->getMessage());
+        }
+        return [$success, $message];
     }
 
     /**
@@ -62,12 +115,12 @@ class Role extends Model
      */
     public function assignPermissions(AssignPermissionsRequest $request): array
     {
-        $result = true;
+        $success = true;
         $message = '保存成功';
         try {
             $params = $request->validated();
             $roleId = $params['role_id'];
-            $permissionIds = explode(',', $params['permission_id']);
+            $permissionIds = $params['permission_ids'];
             $role = Role::query()->find($roleId);
             if (empty($role)) {
                 throw new \ErrorException('角色不存在');
@@ -87,11 +140,40 @@ class Role extends Model
                 }
             });
         } catch (\Exception $e) {
-            $result = false;
+            $success = false;
             $message = '保存失败，' . $e->getMessage();
             Log::error('角色权限保存失败,error:' . $e->getMessage());
         }
-        return [$result, $message];
+        return [$success, $message];
+    }
+
+    public function getRolePermissions(int $roleId): array
+    {
+        $data = [];
+        $permissionIds = [];
+        try {
+            $res = MenuPermission::query()->leftJoin('menus', 'menus.id', '=', 'menu_permissions.menu_id')
+                ->leftJoin('permissions', 'permissions.id', '=', 'menu_permissions.permission_id')
+                ->where('menus.state', '>=', 0)
+                ->where('permissions.state', '>=', 0)
+                ->select('menus.id as menu_id', 'menus.name as menu_name', 'permissions.id as permission_id', 'permissions.name as permission_name')
+                ->get()->toArray();
+            $rolePermissions = RolePermission::query()->where('role_id', $roleId)->get()->toArray();
+            $permissionIds = array_column($rolePermissions, 'permission_id');
+            $menuPermissions = [];
+            foreach ($res as $item) {
+                $menuPermissions[$item['menu_id']]['id'] = 'menu_' . $item['menu_id'];
+                $menuPermissions[$item['menu_id']]['label'] = $item['menu_name'];
+                $menuPermissions[$item['menu_id']]['children'][] = [
+                    'id' => $item['permission_id'],
+                    'label' => $item['permission_name']
+                ];
+            }
+            $data = array_values($menuPermissions);
+        } catch (\Exception $e) {
+            Log::error('获取角色权限失败,error:' . $e->getMessage());
+        }
+        return [$data, $permissionIds];
     }
 
     /**
@@ -113,7 +195,7 @@ class Role extends Model
                         $query->where('name', 'like', "$value%");
                         break;
                     case 'state':
-                        $query->where('name', $value);
+                        $query->where('state', $value);
                         break;
                     default:
                         if (isset($fields[$key])) {
