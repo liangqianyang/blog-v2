@@ -3,7 +3,9 @@
 namespace App\Models;
 
 use App\Component\Helpers;
+use App\Http\Requests\ChangeMenuStateRequest;
 use App\Http\Requests\CreateMenuRequest;
+use App\Http\Requests\UpdateMenuRequest;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
@@ -46,11 +48,13 @@ class Menu extends Model
             $parentIds = array_column($list, 'parent_id');
             $parentIds = array_unique(array_filter($parentIds));
             $menuIds = array_unique(array_merge($menuIds, $parentIds));
-            $data = Menu::query()->select(['id as value', 'parent_id', 'name as label'])->whereIn('id', $menuIds)->get()->toArray();
+            $data = Menu::query()->select(['id as value', 'parent_id', 'name as label'])->whereIn('id', $menuIds)->orderBy('sort', 'asc')->get()->toArray();
         } catch (\Exception $e) {
             Log::error('获取菜单选择列表失败,error:' . $e->getMessage());
         }
-        return Helpers::buildTree($data, 0, 'value');
+        $data = Helpers::buildTree($data, 0, 'value');
+        array_unshift($data, ['value' => 0, 'label' => '无', 'parent_id' => 0]);
+        return $data;
     }
 
     /**
@@ -135,7 +139,7 @@ class Menu extends Model
         return $query;
     }
 
-    public function store(CreateMenuRequest $request)
+    public function store(CreateMenuRequest $request): array
     {
         $result = true;
         $message = '保存成功';
@@ -160,6 +164,67 @@ class Menu extends Model
             Log::error('菜单保存失败,error:' . $e->getMessage());
         }
         return [$result, $message];
+    }
+
+    /**
+     * 更新菜单
+     * @param UpdateMenuRequest $request
+     * @return array
+     */
+    public function updateDate(UpdateMenuRequest $request): array
+    {
+        $result = true;
+        $message = '保存成功';
+        try {
+            $params = $request->validated();
+            $menu = Menu::query()->find($params['id']);
+            if (empty($menu)) {
+                throw new \ErrorException('菜单不存在');
+            }
+            $menu->name = $params['name'];
+            $menu->component = $params['component'];
+            $menu->path = $params['path'];
+            $menu->icon = !empty($params['icon']) ? $params['icon'] : '';
+            $menu->sort = !empty($params['sort']) ? $params['sort'] : '';
+            $menu->save();
+        } catch (\Exception $e) {
+            $result = false;
+            $message = '保存失败，' . $e->getMessage();
+            Log::error('菜单保存失败,error:' . $e->getMessage());
+        }
+        return [$result, $message];
+    }
+
+    /**
+     * 更改菜单状态
+     * @param ChangeMenuStateRequest $request
+     * @return array
+     */
+    public function changeState(ChangeMenuStateRequest $request): array
+    {
+        $success = true;
+        $message = '操作成功';
+        try {
+            $params = $request->validated();
+            $menu = Menu::query()->find($params['id']);
+            if (empty($menu)) {
+                throw new \ErrorException('菜单不存在');
+            }
+            $menu->state = $menu->state == 1 ? -1 : 1;
+            if ($menu->state == -1) {
+                $menuPermission = MenuPermission::query()->where('menu_id', $params['id'])->first();
+                if (!empty($menuPermission)) {
+                    throw new \ErrorException('菜单已分配给权限，不可停用');
+                }
+                MenuPermission::query()->where('menu_id', $params['id'])->delete();
+            }
+            $menu->save();
+        } catch (\Exception $e) {
+            $success = false;
+            $message = '操作失败，' . $e->getMessage();
+            Log::error('菜单状态修改失败,error:' . $e->getMessage());
+        }
+        return [$success, $message];
     }
 }
 

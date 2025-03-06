@@ -2,10 +2,9 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
-class CreatePermissionRequest extends FormRequest
+class UpdateMenuRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -18,15 +17,18 @@ class CreatePermissionRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, ValidationRule|array|string>
+     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
         return [
-            'menu_id' => 'required|integer',
+            'id' => 'required|integer',
+            'parent_id' => 'required|integer',
             'name' => 'required|max:64',
-            'code' => 'required|max:64',
-            'description' => 'max:128',
+            'component' => 'required|max:100',
+            'path' => 'required|string|max:100',
+            'icon' => 'max:100',
+            'sort' => 'integer',
         ];
     }
 }

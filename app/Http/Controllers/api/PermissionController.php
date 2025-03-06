@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\ChangePermissionStateRequest;
 use App\Http\Requests\CreatePermissionRequest;
 use App\Models\Permission;
 use Illuminate\Http\Request;
@@ -45,6 +46,22 @@ class PermissionController extends Controller
         } catch (\Exception $e) {
             $result['code'] = -1;
             $result['message'] = $e->getMessage();
+        }
+        return json_encode($result, JSON_UNESCAPED_UNICODE);
+    }
+
+    /**
+     * 更改权限状态
+     * @param ChangePermissionStateRequest $request
+     * @return string
+     */
+    public function changeState(ChangePermissionStateRequest $request): string
+    {
+        $result = ['code' => 0, 'message' => '操作成功'];
+        list($success, $message) = $this->model->changeState($request);
+        if (!$success) {
+            $result['code'] = -1;
+            $result['message'] = $message;
         }
         return json_encode($result, JSON_UNESCAPED_UNICODE);
     }

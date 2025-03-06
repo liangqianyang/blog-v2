@@ -88,6 +88,11 @@ class Role extends Model
     }
 
 
+    /**
+     * 更改角色状态
+     * @param ChangeRoleStateRequest $request
+     * @return array
+     */
     public function changeState(ChangeRoleStateRequest $request): array
     {
         $success = true;
@@ -147,6 +152,11 @@ class Role extends Model
         return [$success, $message];
     }
 
+    /**
+     * 获取角色权限
+     * @param int $roleId
+     * @return array
+     */
     public function getRolePermissions(int $roleId): array
     {
         $data = [];

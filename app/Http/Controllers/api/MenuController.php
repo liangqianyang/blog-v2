@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\ChangeMenuStateRequest;
 use App\Http\Requests\CreateMenuRequest;
+use App\Http\Requests\UpdateMenuRequest;
 use App\Models\Menu;
 use Illuminate\Http\Request;
 
@@ -60,6 +62,38 @@ class MenuController extends Controller
     {
         $result = ['code' => 0, 'message' => '保存成功'];
         list($res, $message) = $this->model->store($request);
+        if (!$res) {
+            $result['code'] = -1;
+            $result['message'] = $message;
+        }
+        return json_encode($result, JSON_UNESCAPED_UNICODE);
+    }
+
+    /**
+     * 更新菜单
+     * @param UpdateMenuRequest $request
+     * @return string
+     */
+    public function update(UpdateMenuRequest $request): string
+    {
+        $result = ['code' => 0, 'message' => '保存成功'];
+        list($res, $message) = $this->model->updateDate($request);
+        if (!$res) {
+            $result['code'] = -1;
+            $result['message'] = $message;
+        }
+        return json_encode($result, JSON_UNESCAPED_UNICODE);
+    }
+
+    /**
+     * 更改菜单状态
+     * @param ChangeMenuStateRequest $request
+     * @return string
+     */
+    public function changeMenuState(ChangeMenuStateRequest $request): string
+    {
+        $result = ['code' => 0, 'message' => '操作成功'];
+        list($res, $message) = $this->model->changeState($request);
         if (!$res) {
             $result['code'] = -1;
             $result['message'] = $message;
