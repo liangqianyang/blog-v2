@@ -2,13 +2,13 @@
 
 namespace App\Models;
 
+use App\Component\Exception\WarningException;
+use App\Component\LogHelper;
 use App\Http\Requests\ChangePermissionStateRequest;
 use App\Http\Requests\CreatePermissionRequest;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -51,7 +51,7 @@ class Permission extends Model
             $description = $request->input('description');
             $permission = Permission::query()->where('code', $code)->where('id', '<>', $id)->first();
             if (!empty($permission)) {
-                throw new \ErrorException('权限标识已存在');
+                throw new WarningException('权限标识已存在');
             }
             DB::transaction(function () use ($id, $name, $code, $description, $menuId) {
                 if ($id) {
@@ -79,7 +79,7 @@ class Permission extends Model
             $result = true;
         } catch (\Exception $e) {
             $message = $e->getMessage();
-            Log::error('权限保存失败,error:' . $e->getMessage());
+            LogHelper::error('权限保存失败,error:' . $e->getMessage(), $e);
         }
         return [$result, $message];
     }

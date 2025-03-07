@@ -2,7 +2,9 @@
 
 namespace App\Models;
 
+use App\Component\Exception\WarningException;
 use App\Component\Helpers;
+use App\Component\LogHelper;
 use App\Http\Requests\ChangeMenuStateRequest;
 use App\Http\Requests\CreateMenuRequest;
 use App\Http\Requests\UpdateMenuRequest;
@@ -147,7 +149,7 @@ class Menu extends Model
             $params = $request->validated();
             $menu = Menu::query()->where('name', $params['name'])->first();
             if (!empty($menu)) {
-                throw new \ErrorException('菜单已存在');
+                throw new WarningException('菜单已存在');
             }
             $menu = new Menu();
             $menu->parent_id = $params['parent_id'];
@@ -161,7 +163,7 @@ class Menu extends Model
         } catch (\Exception $e) {
             $result = false;
             $message = '保存失败，' . $e->getMessage();
-            Log::error('菜单保存失败,error:' . $e->getMessage());
+            LogHelper::error($e->getMessage(), $e);
         }
         return [$result, $message];
     }
@@ -179,7 +181,7 @@ class Menu extends Model
             $params = $request->validated();
             $menu = Menu::query()->find($params['id']);
             if (empty($menu)) {
-                throw new \ErrorException('菜单不存在');
+                throw new WarningException('菜单不存在');
             }
             $menu->name = $params['name'];
             $menu->component = $params['component'];
@@ -190,7 +192,7 @@ class Menu extends Model
         } catch (\Exception $e) {
             $result = false;
             $message = '保存失败，' . $e->getMessage();
-            Log::error('菜单保存失败,error:' . $e->getMessage());
+            LogHelper::error($e->getMessage(), $e);
         }
         return [$result, $message];
     }
@@ -208,13 +210,13 @@ class Menu extends Model
             $params = $request->validated();
             $menu = Menu::query()->find($params['id']);
             if (empty($menu)) {
-                throw new \ErrorException('菜单不存在');
+                throw new WarningException('菜单不存在');
             }
             $menu->state = $menu->state == 1 ? -1 : 1;
             if ($menu->state == -1) {
                 $menuPermission = MenuPermission::query()->where('menu_id', $params['id'])->first();
                 if (!empty($menuPermission)) {
-                    throw new \ErrorException('菜单已分配给权限，不可停用');
+                    throw new WarningException('菜单已分配给权限，不可停用');
                 }
                 MenuPermission::query()->where('menu_id', $params['id'])->delete();
             }
@@ -222,7 +224,7 @@ class Menu extends Model
         } catch (\Exception $e) {
             $success = false;
             $message = '操作失败，' . $e->getMessage();
-            Log::error('菜单状态修改失败,error:' . $e->getMessage());
+            LogHelper::error('菜单状态修改失败,error:' . $e->getMessage(), $e);
         }
         return [$success, $message];
     }

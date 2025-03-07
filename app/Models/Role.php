@@ -2,7 +2,8 @@
 
 namespace App\Models;
 
-use App\Component\Helpers;
+use App\Component\Exception\WarningException;
+use App\Component\LogHelper;
 use App\Http\Requests\AssignPermissionsRequest;
 use App\Http\Requests\ChangeRoleStateRequest;
 use App\Http\Requests\CreateRoleRequest;
@@ -45,7 +46,7 @@ class Role extends Model
             $params = $request->validated();
             $role = Role::query()->where('name', $params['name'])->first();
             if (!empty($role)) {
-                throw new \ErrorException('角色已存在');
+                throw new WarningException('角色已存在');
             }
             $role = new Role();
             $role->name = $params['name'];
@@ -53,7 +54,7 @@ class Role extends Model
         } catch (\Exception $e) {
             $success = false;
             $message = '保存失败，' . $e->getMessage();
-            Log::error('角色保存失败,error:' . $e->getMessage());
+            LogHelper::error('角色保存失败,error:' . $e->getMessage(), $e);
         }
         return [$success, $message];
     }
@@ -71,18 +72,18 @@ class Role extends Model
             $params = $request->validated();
             $role = Role::query()->where('name', $params['name'])->first();
             if (!empty($role)) {
-                throw new \ErrorException('角色已存在');
+                throw new WarningException('角色已存在');
             }
             $role = Role::query()->find($params['id']);
             if (empty($role)) {
-                throw new \ErrorException('角色不存在');
+                throw new WarningException('角色不存在');
             }
             $role->name = $params['name'];
             $role->save();
         } catch (\Exception $e) {
             $success = false;
             $message = '更新失败，' . $e->getMessage();
-            Log::error('角色更新失败,error:' . $e->getMessage());
+            LogHelper::error('角色更新失败,error:' . $e->getMessage(), $e);
         }
         return [$success, $message];
     }
@@ -101,14 +102,14 @@ class Role extends Model
             $params = $request->validated();
             $role = Role::query()->find($params['id']);
             if (empty($role)) {
-                throw new \ErrorException('角色不存在');
+                throw new WarningException('角色不存在');
             }
             $role->state = $role->state == 1 ? -1 : 1;
             $role->save();
         } catch (\Exception $e) {
             $success = false;
             $message = '操作失败，' . $e->getMessage();
-            Log::error('角色状态修改失败,error:' . $e->getMessage());
+            LogHelper::error('角色状态修改失败,error:' . $e->getMessage(), $e);
         }
         return [$success, $message];
     }
@@ -128,11 +129,11 @@ class Role extends Model
             $permissionIds = $params['permission_ids'];
             $role = Role::query()->find($roleId);
             if (empty($role)) {
-                throw new \ErrorException('角色不存在');
+                throw new WarningException('角色不存在');
             }
             $permissions = Permission::query()->whereIn('id', $permissionIds)->get()->toArray();
             if (empty($permissions)) {
-                throw new \ErrorException('权限不存在');
+                throw new WarningException('权限不存在');
             }
             $newPermissionIds = array_column($permissions, 'id');
             DB::transaction(function () use ($roleId, $newPermissionIds) {
@@ -147,7 +148,7 @@ class Role extends Model
         } catch (\Exception $e) {
             $success = false;
             $message = '保存失败，' . $e->getMessage();
-            Log::error('角色权限保存失败,error:' . $e->getMessage());
+            LogHelper::error('角色权限保存失败,error:' . $e->getMessage(), $e);
         }
         return [$success, $message];
     }
