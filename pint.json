@@ -1,6 +1,13 @@
 {
     "preset": "laravel",
     "rules": {
+        "array_syntax": true,
+        "binary_operator_spaces": {
+            "default": "single_space",
+            "operators": {
+                "=>": "align"
+            }
+        },
         "blank_line_after_opening_tag": true,
         "no_unused_imports": true
     },
