@@ -6,9 +6,9 @@ class Helpers
 {
     /**
      * 构建树形结构
-     * @param array $items
-     * @param int $parentId
-     * @return array
+     * @param  array  $items  数据列表
+     * @param  int  $parentId  父级ID
+     * @param  string  $key  唯一标识键名
      */
     public static function buildTree(array $items, int $parentId = 0, string $key = 'id'): array
     {
@@ -22,6 +22,7 @@ class Helpers
                 $branch[] = $item;
             }
         }
+
         return $branch;
     }
 }

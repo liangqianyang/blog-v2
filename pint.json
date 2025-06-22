@@ -1,0 +1,11 @@
+{
+    "preset": "laravel",
+    "rules": {
+        "blank_line_after_opening_tag": true,
+        "no_unused_imports": true
+    },
+    "exclude": [
+        "database/migrations",
+        "storage/framework"
+    ]
+}
