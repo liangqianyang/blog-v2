@@ -2,12 +2,15 @@
 
 namespace App\Http\Controllers\api;
 
-use App\Http\Controllers\Controller;
 use App\Http\Requests\UserLoginRequest;
 use App\Models\User;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
 {
@@ -21,7 +24,7 @@ class UserController extends Controller
     /**
      * 登录
      */
-    public function login(UserLoginRequest $request): string
+    public function login(UserLoginRequest $request): JsonResponse
     {
         $result = ['code' => 0, 'message' => '登录成功', 'data' => []];
         try {
@@ -44,13 +47,13 @@ class UserController extends Controller
             $result['message'] = $e->getMessage();
         }
 
-        return json_encode($result);
+        return response()->json($result);
     }
 
     /**
      * 退出登录
      */
-    public function loginOut(Request $request): string
+    public function loginOut(Request $request): JsonResponse
     {
         $data = ['code' => 0, 'message' => '退出成功'];
         try {
@@ -60,6 +63,80 @@ class UserController extends Controller
             $data['message'] = $e->getMessage();
         }
 
-        return json_encode($data);
+        return response()->json($data);
+    }
+
+    /**
+     * 获取用户角色
+     */
+    public function roles($id): JsonResponse
+    {
+        $user = User::query()->findOrFail($id);
+
+        return response()->json($user->roles);
+    }
+
+    /**
+     * 分配角色
+     */
+    public function assignRole(Request $request, $id): JsonResponse
+    {
+        $user = User::query()->findOrFail($id);
+        $data = $request->validate([
+            'roles'   => 'required|array',
+            'roles.*' => 'string|exists:roles,name',
+        ]);
+        $user->syncRoles($data['roles']);
+
+        return response()->json($user->roles);
+    }
+
+    /**
+     * 移除角色
+     */
+    public function removeRole($id, $role_id): JsonResponse
+    {
+        $user = User::query()->findOrFail($id);
+        $role = Role::query()->findOrFail($role_id);
+        $user->removeRole($role);
+
+        return response()->json($user->roles);
+    }
+
+    /**
+     * 获取用户权限
+     */
+    public function permissions($id): JsonResponse
+    {
+        $user = User::query()->findOrFail($id);
+
+        return response()->json($user->getAllPermissions());
+    }
+
+    /**
+     * 分配权限
+     */
+    public function givePermission(Request $request, $id): JsonResponse
+    {
+        $user = User::query()->findOrFail($id);
+        $data = $request->validate([
+            'permissions'   => 'required|array',
+            'permissions.*' => 'string|exists:permissions,name',
+        ]);
+        $user->givePermissionTo($data['permissions']);
+
+        return response()->json($user->getAllPermissions());
+    }
+
+    /**
+     * 移除权限
+     */
+    public function revokePermission($id, $permission_id): JsonResponse
+    {
+        $user = User::query()->findOrFail($id);
+        $permission = Permission::query()->findOrFail($permission_id);
+        $user->revokePermissionTo($permission);
+
+        return response()->json($user->getAllPermissions());
     }
 }
